@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ESP32 MQTT Dashboard</title>
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    <style>
+        body {
+            font-family: Arial;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+
+        .card {
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        button {
+            padding: 12px 20px;
+            margin: 5px;
+            cursor: pointer;
+        }
+
+        #messages {
+            background: #f4f4f4;
+            padding: 15px;
+            min-height: 100px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>ESP32 IoT Dashboard</h1>
+
+    <div class="card">
+        <h3>Connection Status</h3>
+        <p id="status">Connecting...</p>
+    </div>
+
+    <div class="card">
+        <h3>ESP32 Telemetry</h3>
+        <div id="messages">Waiting for data...</div>
+    </div>
+
+    <div class="card">
+        <h3>Send Command to ESP32</h3>
+
+        <button onclick="sendCommand('LED_ON')">
+            LED ON
+        </button>
+
+        <button onclick="sendCommand('LED_OFF')">
+            LED OFF
+        </button>
+    </div>
+
+    <script>
+        const telemetryTopic = "supun/esp32/test/device01/telemetry";
+        const commandTopic = "supun/esp32/test/device01/command";
+
+        // VPS WSS Connection Settings
+        const client = mqtt.connect("wss://iot.techknowlk.com:443", {
+            username: "esp_test_user",
+            password: "Supun@2001"
+        });
+
+        const status = document.getElementById("status");
+        const messages = document.getElementById("messages");
+
+        client.on("connect", () => {
+            status.innerText = "Connected to Secure VPS Broker!";
+            client.subscribe(telemetryTopic);
+        });
+
+        client.on("message", (topic, message) => {
+            messages.innerText = message.toString();
+        });
+
+        client.on("error", (error) => {
+            status.innerText = "Connection error";
+            console.error(error);
+        });
+
+        function sendCommand(command) {
+            if (client.connected) {
+                client.publish(commandTopic, command);
+                console.log("Command sent:", command);
+            }
+        }
+    </script>
+
+</body>
+</html>
